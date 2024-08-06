@@ -136,6 +136,7 @@ enum _US_OPT_VALUES {
 
 #	ifdef WITH_V4P
 	_O_V4P,
+	_O_V4P_PORT_NAME,
 #	endif
 
 #	ifdef WITH_GPIO
@@ -250,6 +251,7 @@ static const struct option _LONG_OPTS[] = {
 
 #	ifdef WITH_V4P
 	{"v4p",						no_argument,		NULL,	_O_V4P},
+	{"v4p-port-name",			required_argument,	NULL,	_O_V4P_PORT_NAME},
 #	endif
 
 #	ifdef WITH_GPIO
@@ -419,6 +421,11 @@ int us_options_parse(
 	const char *process_name_prefix = NULL;
 #	endif
 
+#   ifdef WITH_V4P
+	char *v4p_port_name = NULL;
+	bool v4p_enable = false;
+#   endif
+
 	char short_opts[128];
 	us_build_short_options(_LONG_OPTS, short_opts, 128);
 
@@ -522,10 +529,8 @@ int us_options_parse(
 			case _O_H264_BOOST:				OPT_SET(stream->h264_boost, true);
 
 #			ifdef WITH_V4P
-			case _O_V4P:
-				opts->drm = us_drm_init();
-				stream->drm = opts->drm;
-				break;
+			case _O_V4P_PORT_NAME:		    OPT_SET(v4p_port_name, optarg);
+			case _O_V4P:                    OPT_SET(v4p_enable, true);
 #			endif
 
 #			ifdef WITH_GPIO
@@ -565,6 +570,13 @@ int us_options_parse(
 			default:	return -1;
 		}
 	}
+
+#   ifdef WITH_V4P
+	if (v4p_enable) {
+		opts->drm = us_drm_init(v4p_port_name);
+		stream->drm = opts->drm;
+	}
+#   endif
 
 	US_LOG_INFO("Starting PiKVM uStreamer %s ...", US_VERSION);
 
@@ -811,8 +823,9 @@ static void _help(
 #	ifdef WITH_V4P
 	SAY("Passthrough options for PiKVM V4:");
 	SAY("═════════════════════════════════");
-	SAY("    --v4p  ─ Enable HDMI passthrough to OUT2 on the device: https://docs.pikvm.org/pass");
-	SAY("             Default: disabled.\n");
+	SAY("    --v4p  ────────────────── Enable HDMI passthrough on the device: https://docs.pikvm.org/pass");
+	SAY("                              Default: disabled.");
+	SAY("    --v4p-port-name <name>  ─ Set the name of the output port. Default: HDMI-A-2.\n");
 #	endif
 #	ifdef WITH_GPIO
 	SAY("GPIO options:");
