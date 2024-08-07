@@ -15,7 +15,7 @@ source=(${pkgname}::"git+https://github.com/pikvm/ustreamer#commit=v${pkgver}")
 md5sums=(SKIP)
 
 
-_options="WITH_GPIO=1 WITH_SYSTEMD=1"
+_options="WITH_GPIO=1 WITH_SYSTEMD=1 WITH_V4P=1"
 if [ -e /usr/bin/python3 ]; then
 	_options="$_options WITH_PYTHON=1"
 	depends+=(python)
